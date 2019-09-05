@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="stylesheet" href="">
+
+    <style>
+        header {
+            background-color: orange;
+            height: 110px;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .filterTekst {
+            font-size: 1rem;
+        }
+
+        .logo {
+            text-align: left;
+            color: red;
+            font-size: 3rem;
+        }
+
+        nav {
+            margin: 10px;
+            text-align: center;
+
+        }
+
+        button {
+            padding: 5px;
+            border-radius: 2px;
+        }
+
+        .valgt {
+            background-color: aquamarine;
+        }
+
+        .data_container {
+            display: grid;
+            grid-gap: 10px;
+            grid-template-columns: repeat(1, 1fr);
+            max-width: 900px;
+            text-align: center;
+            margin: 10px auto;
+            padding: 10px;
+        }
+
+
+        h1 {
+            text-align: center;
+            margin: 0;
+        }
+
+        h2 {
+            text-align: center;
+            color: gray;
+        }
+
+        article {
+            border: solid 2px gainsboro;
+            padding: 10px;
+            background-color: cornsilk;
+        }
+
+        .nr {
+            font-size: 2rem;
+            color: green;
+            text-align: right;
+            margin: 0;
+        }
+
+        .pris {
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        img {
+            width: 100%;
+        }
+
+        footer {
+            background-color: orange;
+            height: 110px;
+            margin-top: 20px;
+        }
+
+
+        @media screen and (min-width: 600px) {
+            .data_container {
+                grid-template-columns: repeat(2, 1fr);
+
+
+            }
+        }
+
+        @media screen and (min-width: 900px) {
+            .data_container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 class="logo">Babushka</h1>
+    </header>
+
+    <h1>Menu</h1>
+    <h2 class="filterTekst">Alle</h2>
+
+    <nav>
+        <button class="filter valgt" data-kategori="alle">Alle retter</button>
+        <button class="filter" data-kategori="forretter" data-hold="alle">Forretter</button>
+        <button class="filter" data-kategori="hovedretter" data-hold="alle">Hovedretter</button>
+        <button class="filter" data-kategori="sideorders">Sideorders</button>
+        <button class="filter" data-kategori="desserter" data-hold="alle">Desserter</button>
+        <button class="filter" data-kategori="drikkevarer">Drikkevarer</button>
+
+    </nav>
+
+
+    <section class="data_container"></section>
+
+    <template>
+        <article>
+            <p class="nr"></p>
+            <img src="" alt="">
+            <h2></h2>
+            <p class="kort_beskrivelse"></p>
+            <p class="pris"></p>
+
+        </article>
+    </template>
+
+    <footer></footer>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", hentjson);
+
+        let mineRetter;
+        let filter = "alle";
+
+        const listevisning = document.querySelector(".data_container");
+        const template = document.querySelector("template");
+
+        async function hentjson() {
+            console.log("hentjson");
+
+            let myRawjson = await fetch("https://spreadsheets.google.com/feeds/list/17Dd7DvkPaFamNUdUKlrFgnH6POvBJXac7qyiS6zNRw0/od6/public/values?alt=json");
+
+            mineRetter = await myRawjson.json();
+            //  console.log(myjson);
+
+            informationer();
+            addEventlistenerToButton();
+
+        }
+
+        function informationer() {
+            console.log("køre");
+
+            listevisning.innerHTML = "";
+
+
+            mineRetter.feed.entry.forEach((ret) => {
+
+                if (filter == "alle" || filter == ret.gsx$kategori.$t) {
+
+
+                    const klon = template.cloneNode(true).content;
+
+                    klon.querySelector("img").src = `imgs/small/${ret.gsx$billede.$t}-sm.jpg`;
+                    klon.querySelector("article h2").textContent = ` ${ret.gsx$navn.$t}`;
+                    klon.querySelector("article .kort_beskrivelse").textContent = ` ${ret.gsx$kort.$t}`;
+                    klon.querySelector("article .pris").textContent = `Pris: ${ret.gsx$pris.$t} kr`;
+
+                    klon.querySelector("article .nr").textContent = `Nr:  ${ret.gsx$id.$t}`;
+
+                    listevisning.appendChild(klon);
+                    listevisning.lastElementChild.addEventListener("click", () => {
+                        location.href = `babushka-enkeltSide.html?nr=${ret.gsx$id.$t}`;
+                    });
+
+                }
+
+            });
+        }
+
+        function addEventlistenerToButton() {
+            document.querySelectorAll(".filter").forEach(elm => {
+                elm.addEventListener("click", filtrering);
+            });
+        }
+
+        function filtrering() {
+            filter = this.dataset.kategori;
+            document.querySelector("h2").textContent = this.textContent;
+            document.querySelectorAll(".filter").forEach(elm => {
+                elm.classList.remove("valgt");
+                console.log(`${filter}`);
+            });
+
+            this.classList.add("valgt");
+
+            informationer();
+        }
+    </script>
+
+</body></html>

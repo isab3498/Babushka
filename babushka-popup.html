@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="stylesheet" href="">
+
+    <style>
+        header {
+            background-color: orange;
+            height: 110px;
+        }
+
+        body {
+            margin: 0;
+        }
+
+        .filterTekst {
+            font-size: 1rem;
+        }
+
+        .logo {
+            text-align: left;
+            color: red;
+            font-size: 3rem;
+        }
+
+        nav {
+            margin: 10px;
+            text-align: center;
+
+        }
+
+        button {
+            padding: 5px;
+            border-radius: 2px;
+        }
+
+        .valgt {
+            background-color: aquamarine;
+        }
+
+        .data_container {
+            display: grid;
+            grid-gap: 10px;
+            grid-template-columns: repeat(1, 1fr);
+            max-width: 900px;
+            text-align: center;
+            margin: auto;
+            padding: 10px;
+        }
+
+
+        h1 {
+            text-align: center;
+            margin: 0;
+        }
+
+        h2 {
+            text-align: center;
+            color: gray;
+        }
+
+        article {
+            border: solid 2px gainsboro;
+            padding: 10px;
+            background-color: cornsilk;
+        }
+
+        .nr {
+            font-size: 2rem;
+            color: green;
+            text-align: right;
+            margin: 0;
+        }
+
+        .pris {
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
+        img {
+            width: 100%;
+        }
+
+        footer {
+            background-color: orange;
+            height: 110px;
+            margin-top: 20px;
+        }
+
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(250, 235, 215, 0.66);
+            text-align: center;
+        }
+
+        .luk {
+            position: fixed;
+            right: 0;
+            font-size: 2rem;
+        }
+
+        .indhold {
+            width: 70vw;
+            min-height: 50vh;
+            background: #f8f8f2;
+            margin: 4rem auto;
+            padding: 10px;
+        }
+
+        .popup img {
+            width: 60%;
+
+        }
+
+        @media screen and (min-width: 600px) {
+            .data_container {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media screen and (min-width: 900px) {
+            .data_container {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .indhold {
+                width: 50vw;
+
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1 class="logo">Babushka</h1>
+    </header>
+
+    <h1>Menu</h1>
+    <h2 class="filterTekst">Alle</h2>
+    <nav>
+        <button class="filter valgt" data-kategori="alle">Alle retter</button>
+        <button class="filter" data-kategori="forretter" data-hold="alle">Forretter</button>
+        <button class="filter" data-kategori="hovedretter" data-hold="alle">Hovedretter</button>
+        <button class="filter" data-kategori="sideorders">Sideorders</button>
+        <button class="filter" data-kategori="desserter" data-hold="alle">Desserter</button>
+        <button class="filter" data-kategori="drikkevarer">Drikkevarer</button>
+
+    </nav>
+
+    <section class="data_container"></section>
+    <template>
+        <article>
+            <img src="" alt="">
+            <h2></h2>
+            <p class="kort_beskrivelse"></p>
+            <p class="pris"></p>
+            <p class="nr"></p>
+        </article>
+    </template>
+
+    <div class="popup">
+        <button class="luk">X</button>
+        <section class="indhold">
+            <p class="nr"></p>
+            <article class="enkeltperson">
+                <img src="" alt="">
+                <h2></h2>
+                <p class="oprindelse"></p>
+                <p class="lang_beskrivelse"></p>
+                <p class="pris"></p>
+            </article>
+        </section>
+    </div>
+
+
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", hentjson);
+
+        let mineRetter;
+        let filter = "alle";
+
+        const listevisning = document.querySelector(".data_container");
+        const template = document.querySelector("template");
+
+        async function hentjson() {
+            console.log("hentjson");
+
+            let myRawjson = await fetch("https://spreadsheets.google.com/feeds/list/17Dd7DvkPaFamNUdUKlrFgnH6POvBJXac7qyiS6zNRw0/od6/public/values?alt=json");
+
+            mineRetter = await myRawjson.json();
+            //  console.log(myjson);
+
+            informationer();
+            addEventlistenerToButton();
+
+        }
+
+        function informationer() {
+            console.log("køre");
+
+            listevisning.innerHTML = "";
+
+
+            mineRetter.feed.entry.forEach((ret) => {
+
+                if (filter == "alle" || filter == ret.gsx$kategori.$t) {
+
+
+                    const klon = template.cloneNode(true).content;
+
+                    klon.querySelector("img").src = `imgs/small/${ret.gsx$billede.$t}-sm.jpg `;
+                    klon.querySelector("article h2").textContent = ` ${ret.gsx$navn.$t}`;
+                    klon.querySelector("article .kort_beskrivelse").textContent = ` ${ret.gsx$kort.$t}`;
+                    klon.querySelector("article .pris").textContent = `Pris: ${ret.gsx$pris.$t} kr`;
+
+                    klon.querySelector("article .nr").textContent = `Nr:  ${ret.gsx$id.$t}`;
+
+
+                    //                    klon.querySelector("").textContent = ` ${ret.gsx$lang.$t}`;
+                    //                    klon.querySelector("").textContent = ` ${ret.gsx$oprindelse.$t}`;
+
+
+                    listevisning.appendChild(klon);
+                    listevisning.lastElementChild.addEventListener("click", () => {
+                        visSingel(ret)
+                    });
+
+                }
+
+            });
+        }
+
+        function visSingel(ret) {
+            document.querySelector(".popup").style.display = "block";
+            document.querySelector(".popup .luk").addEventListener("click", lukSingel);
+
+            document.querySelector(".popup img").src = `imgs/small/${ret.gsx$billede.$t}-sm.jpg `;
+            document.querySelector(".popup h2").textContent = ret.gsx$navn.$t;
+            document.querySelector(".oprindelse").textContent = `Oprindelse: ${ret.gsx$oprindelse.$t}`;
+            document.querySelector(".lang_beskrivelse").textContent = ret.gsx$lang.$t;
+            document.querySelector(".popup .pris").textContent = `Pris: ${ret.gsx$pris.$t} kr`;
+            document.querySelector(".popup .nr").textContent = `Nr:  ${ret.gsx$id.$t}`;
+
+
+        }
+
+        function lukSingel() {
+            document.querySelector(".popup").style.display = "none";
+        }
+
+        function addEventlistenerToButton() {
+            document.querySelectorAll(".filter").forEach(elm => {
+                elm.addEventListener("click", filtrering);
+            });
+        }
+
+        function filtrering() {
+            filter = this.dataset.kategori;
+            document.querySelector("h2").textContent = this.textContent;
+            document.querySelectorAll(".filter").forEach(elm => {
+                elm.classList.remove("valgt");
+                console.log(`${filter}`);
+            });
+
+            this.classList.add("valgt");
+
+            informationer();
+        }
+    </script>
+
+</body></html>
